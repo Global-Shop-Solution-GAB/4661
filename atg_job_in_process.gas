@@ -1,0 +1,70 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Coded by: ERIC
+'Project Start Date: 6/16/2011
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+F.Intrinsic.Control.CallSub(Bdfload)
+
+Program.Sub.Main.End
+
+Program.Sub.BDFLoad.Start
+V.Local.sJob.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.iRowCnt.Declare(Long)
+V.Local.i.Declare(Long)
+V.Local.sSeq.Declare(String)
+V.Local.sWriteRow.Declare(String)
+V.Local.sReadRow.Declare(String)
+V.Local.sRR.Declare(String)
+V.Local.iColor.Declare(Long)
+V.Local.sReady.Declare(String)
+V.Local.s9.Declare(String)
+
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+
+V.Local.iColor.Set(65280)
+F.Intrinsic.BDF.Load("AUX001","AUX001")
+F.Intrinsic.BDF.Clone("AUX001","Clone")
+F.Intrinsic.BDF.ReadRowCount("AUX001",V.Local.iRowCnt)
+F.Intrinsic.Math.Sub(V.Local.iRowCnt,1,V.Local.iRowCnt)
+F.Intrinsic.Control.For(V.Local.i,0,V.Local.iRowCnt,1)
+	F.Intrinsic.BDF.ReadRow("AUX001",V.Local.i,V.Local.sReadRow)
+	F.Intrinsic.String.Split(V.Local.sReadRow,"|~|",V.Local.sRR)
+	F.Intrinsic.String.Split(V.Local.sRR(1),"-",V.Local.sJob)
+	V.Local.sSeq.Set(V.Local.sRR(2).Trim)
+	F.Intrinsic.Control.If(V.Local.sRR.UBound,=,8)
+		V.Local.s9.Set("")
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Concat("|~|",V.Local.sRR(9),V.Local.s9)
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.String.Concat("Select * From JOBS_IN_PROCESS_G Where Job = '",V.Local.sJob(0).Trim,"' and Suffix = '",V.Local.sJob(1).Trim,"' and Seq = '",V.local.sSeq,"'",V.Local.sSQL)
+	F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSQL)
+	F.Intrinsic.Control.If(V.ODBC.con!rst.EOF,=,False)
+		F.Intrinsic.String.Concat(V.Local.s9,"]=[BC::",V.Local.iColor,V.Local.s9)
+		F.Intrinsic.String.Concat(V.Local.sRR(0),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(1),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(2),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(3),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(4),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(5),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(6),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(7),"]=[BC::",V.Local.iColor,"|~|",V.local.sRR(8),"]=[BC::",V.Local.iColor,V.Local.s9,V.local.sWriteRow)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.If(V.Local.sRR(3),=,"Y")
+			F.Intrinsic.String.Concat(V.Local.sRR(3),"]=[BC::",V.Local.iColor,V.Local.sReady)
+		F.Intrinsic.Control.Else
+			V.Local.sReady.Set(V.Local.sRR(3))
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.String.Concat(V.Local.sRR(0),"|~|",V.local.sRR(1),"|~|",V.local.sRR(2),"|~|",V.Local.sReady,"|~|",V.local.sRR(4),"|~|",V.local.sRR(5),"|~|",V.local.sRR(6),"|~|",V.local.sRR(7),"|~|",V.local.sRR(8),V.Local.s9,V.local.sWriteRow)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rst.Close
+	f.Intrinsic.BDF.WriteRow("Clone",V.Local.sWriteRow.Trim)
+F.Intrinsic.Control.Next(V.Local.i)
+f.Intrinsic.BDF.Save("Clone","AUX001")
+F.Intrinsic.Control.ExitSub
+
+
+
+Program.Sub.BDFLoad.End
+
+
